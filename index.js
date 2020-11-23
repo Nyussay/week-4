@@ -1,26 +1,42 @@
-require('http').Server((req, res) => {
-  const author = 'itmo286138'
+const path = require('path');
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const bodyParser = require('body-parser');
+const publicPath = path.join(__dirname);
+const port = process.env.PORT || 3000;
+app.use(cors());
+app.use(function(req, res, next) {
+    req.rawBody = '';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk) {
+        req.rawBody += chunk;
+    });
+    req.on('end', function() {
+        next();
+    });
+});
+app.use(bodyParser.json());
+app.all('/result4/', (req, res) => {
 
-  res.setHeader('X-Author', author)
-  res.setHeader('Content-Type', 'application/json')
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'x-test,Content-Type,Accept,Access-Control-Allow-Headers')
+    const x_test = req.headers["x-test"];
+    console.log(req.rawBody);
+    if (x_test && req.rawBody) {
+        res.setHeader("Content-Type", "application/json");
+        res.header("Access-Control-Allow-Headers", "x-text, x-test, Content-Type");
+        res.json({message: "itmo286138", "x-result": x_test, "x-body": req.rawBody});
+    } else {
+        res.setHeader("Content-Type", "application/json");
+        res.header("Access-Control-Allow-Headers", "x-text, x-test");
+        res.json({message: "itmo286138", "x-result": x_test});
+    }
+    res.json({message: "itmo286138"});
 
-  if (req.url === '/result4/') {
-    let body = [];
-    req.on('data', (chunk) => {
-      body.push(chunk);
-    }).on('end', () => {
-      body = Buffer.concat(body).toString();
+});
 
-      return res.end(JSON.stringify({
-        message: author,
-        'x-result': req.headers['x-test'],
-        'x-body': body,
-      }))
-    })
-  } else {
-    res.end(author)
-  }
-}).listen(process.env.PORT
+app.listen(port, () => {
+    console.log('Server is up!');
+});
+// app.listen("2222", () => {
+//     console.log('Server is up!');
+// });
